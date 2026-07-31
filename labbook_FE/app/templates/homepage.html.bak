@@ -1,0 +1,186 @@
+{% if session and 'login_ok' in session and session['login_ok'] == session['login'] %}
+{% extends "skeleton.html" %}
+
+{% block head %}
+{{ super() }}
+    <title>{{ _("Accueil") }}</title>
+    <script src="{{ url_for('static', filename='vendor/js/Chart.min.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="content" class="text-center">
+    <div class="inner text-center">
+        <div id="main">
+            <h2 class="page-title page-title-color"><span>{{ _("Accueil") }}</span></h2>
+
+            {% if session['user_role'] == 'A' %}
+            <div class="module">
+                <div class="links">
+                    {% if has_permission("SETTING_38") %}
+                    <a href="{{ session['server_ext'] }}/setting-pref" class="list-group-item icon-module admin-preferences">{{ _("Préférences") }}</a>
+                    {% endif %}
+                    {% if has_permission("ADMIN_1") %}
+                    <a href="{{ session['server_ext'] }}/setting-roles-and-rights" class="list-group-item icon-module admin-gest-role">{{ _("Gestion des rôles") }}</a>
+                    {% endif %}
+                    {% if has_permission("SETTING_39") %}
+                    <a href="{{ session['server_ext'] }}/setting-users" class="list-group-item icon-module admin-crea-profil">{{ _("Gestion des utilisateurs") }}</a>
+                    {% endif %}
+                    {% if has_permission("SETTING_42") %}
+                    <a href="{{ session['server_ext'] }}/setting-analyzes" class="list-group-item icon-module admin-referentiel">{{ _("Référentiel des analyses") }}</a>
+                    {% endif %}
+                    {% if has_permission("SETTING_52") %}
+                    <a href="{{ session['server_ext'] }}/setting-dicts" class="list-group-item icon-module admin-conf-cr">{{ _("Dictionnaires") }}</a>
+                    {% endif %}
+                    {% if has_permission("SETTING_54") %}
+                    <a href="{{ session['server_ext'] }}/setting-backup" class="list-group-item icon-module admin-num-doss">{{ _("Gestion des sauvegardes") }}</a>
+                    {% endif %}
+                    {% if has_permission("SETTING_48") %}
+                    <a href="{{ session['server_ext'] }}/list-analyzers" class="list-group-item icon-module admin-connect">{{ _("Configuration des analyseurs") }}</a>
+                    {% endif %}
+                    {# Admin: configuration of document templates #}
+                    {% if has_permission("SETTING_38") %}
+                    <a href="{{ session['server_ext'] }}/list-template" class="list-group-item icon-module admin-conf-template">{{ _("Configuration des modèles de documents") }}</a>
+                    {% endif %}
+                    {# Admin: configuration of patient/other forms #}
+                    {% if has_permission("SETTING_38") %}
+                    <a href="{{ session['server_ext'] }}/setting-form" class="list-group-item icon-module admin-conf-form">{{ _("Configuration de formulaires") }}</a>
+                    {% endif %}
+                    {# Admin: configuration of sending methods #}
+                    {% if has_permission("SETTING_38") %}
+                    <a href="{{ session['server_ext'] }}/setting-sending-method" class="list-group-item icon-module admin-conf-sending-method">{{ _("Configuration des méthodes d'envoi") }}</a>
+                    {% endif %}
+                </div>
+                {% if args['stat_backup'] == 'OK' %}
+                <div class="text-end"><i class="fs-4 bi bi-database-check text-success me-1" title="{{ _("Dernière sauvegarde OK") }}"></i> <small>{{ args['date_backup'] }}</small></div>
+                {% else %}
+                <div class="text-end"><i class="fs-4 bi bi-database-x text-danger me-1" title="{{ _("Dernière sauvegarde") }}"></i> <small>{{ args['date_backup'] }}</small></div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="module">
+                <div class="links {% if args['nb_emer'] > 0 %}mw-100 mx-5{% endif %}">
+                    {% if session['user_role'] in ('B','T','TA','TQ') and args['nb_emer'] > 0 %}
+                        {% if session['user_role'] == 'B' %}
+                    <a href="{{ session['server_ext'] }}/list-works/B/E" class="list-group-item icon-module emergency" title="{{ _("Analyses urgentes") }} : {{ args['nb_emer'] }}">{{ _("Urgences") }}</a>
+                        {% else %}
+                    <a href="{{ session['server_ext'] }}/list-works/T/E" class="list-group-item icon-module emergency" title="{{ _("Analyses urgentes") }} : {{ args['nb_emer'] }}">{{ _("Urgences") }}</a>
+                        {% endif %}
+                    {% endif %}
+                    {% if has_permission("RECORD_3") and session['user_role'] in ('B','T','TA','TQ','S','SA') %}
+                    <a href="{{ session['server_ext'] }}/list-records" class="list-group-item icon-module rec-list">{{ _("Liste des dossiers") }}</a>
+                    {% endif %}
+                    {% if has_permission("RECORD_5") and session['user_role'] == 'B' %}
+                    <a href="{{ session['server_ext'] }}/list-works/B" class="list-group-item icon-module work-list">{{ _("Liste de travail biologiste") }}</a>
+                    {% endif %}
+                    {% if has_permission("RECORD_8") and session['user_role'] in ('T','TA','TQ') %}
+                    <a href="{{ session['server_ext'] }}/list-works/T" class="list-group-item icon-module work-list">{{ _("Liste de travail technicien") }}</a>
+                    {% endif %}
+                    {% if has_permission("RECORD_13") and session['user_role'] in ('B','T','TA','TQ') %}
+                    <a href="{{ session['server_ext'] }}/list-samples" class="list-group-item icon-module samp-list">{{ _("Etat des prélèvements en cours") }}</a>
+                    {% endif %}
+                    {% if has_permission("RECORD_14") and session['user_role'] in ('B','T','TA','TQ') %}
+                    <a href="{{ session['server_ext'] }}/list-results" class="list-group-item icon-module res-list">{{ _("Saisie des résultats") }}</a>
+                    {% endif %}
+                    {% if has_permission("RECORD_11") and session['user_role'] in ('S','SA') %}
+                    <a href="{{ session['server_ext'] }}/new-req-ext" class="list-group-item icon-module new-rec-ext">{{ _("Nouvelle demande externe") }}</a>
+                    {% endif %}
+                    {% if has_permission("RECORD_12") and session['user_role'] in ('S','SA') %}
+                    <a href="{{ session['server_ext'] }}/new-req-int" class="list-group-item icon-module new-rec-int">{{ _("Nouvelle demande hospitalisé") }}</a>
+                    {% endif %}
+                </div>
+                {% if args['stat_backup'] == 'OK' %}
+                <div class="text-end"><i class="fs-4 bi bi-database-check text-success me-1" title="{{ _("Dernière sauvegarde OK") }}"></i> <small>{{ args['date_backup'] }}</small></div>
+                {% else %}
+                <div class="text-end"><i class="fs-4 bi bi-database-x text-danger me-1" title="{{ _("Dernière sauvegarde") }}"></i> <small>{{ args['date_backup'] }}</small></div>
+                {% endif %}
+            </div>
+
+            <div class="home-stat row">
+                <div class="home-graph col-lg-6 text-lg-end">
+                    <h5 id="label-chart">{{ _("Validations à effectuer") }}</h5>
+                    <canvas id="chart"></canvas>
+                </div>
+                <div class="home-activity col-lg-6 text-start">
+                    <h5 id="label-activity">{{ _("Activité du laboratoire") }}</h5>
+                    <ul>
+                        <li>{{ _("Dernier numéro utilisé") }} : <strong><span class="rec-num" id="num_rec"></span></strong></li>
+                        <li>{{ _("Nombre de dossiers validés aujourd'hui") }} : <strong>{{ args['nb_rec_today'] }}</strong></li>
+                        <li>{{ _("Nombre de dossiers enregistrés") }} : <strong>{{ args['nb_rec'] }}</strong></li>
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block add_script %}
+<script type="text/javascript" nonce="{{ session['nonce'] }}">
+{% if session['user_role'] not in ('A','P','K') %}
+var pieData = [{value: "{{ args['nb_rec_bio'] }}", label: "{{ _("Biologique") }}", color: "#8330E2"}, {value: "{{ args['nb_rec_tech'] }}", label: "{{ _("Technique") }}", color: "#00ADEE"}] ;
+{% endif %}
+
+$( document ).ready( function()
+{
+{% if session['user_role'] not in ('A','P','K') %}
+let rec_num = "" ;
+
+{% if args['record'] %}
+    {% if session['record_period'] == 1070 %} // Month period
+rec_num = {{ args['record']['num_dos_mois'] }} ;
+    {% else %} // Annual period
+rec_num = {{ args['record']['num_dos_an'] }} ;
+    {% endif %}
+rec_num = fmt_num_rec( rec_num, {{ session['record_format'] }}, {{ session['record_period'] }} ) ;
+
+    $("#num_rec").html(rec_num) ;
+{% endif %}
+
+new Chart(document.getElementById("chart").getContext("2d")).Pie(pieData) ;
+{% endif %}
+
+    // Backup alert
+    {% if session['user_role'] in ('A','B') %}
+    if ( sessionStorage.getItem( "backup-alert" ) != "DONE" )
+    {
+    sessionStorage.setItem("backup-alert", "DONE") ;
+
+    var date_backup_ok = {% if args["last_backup_ok"]["is_older_than_24h"] %}"{{ args["last_backup_ok"]["date_backup_ok"] }}"{% else %}""{% endif %} ;
+
+        if ( date_backup_ok !== "" )
+        {
+        alert("{{ _("La dernière sauvegarde OK date de plus de 24 heures.") }} " + date_backup_ok ) ;
+        }
+    }
+    {% endif %}
+
+    // Stock alert
+    {% if session['user_role'] not in ('P','Q') %}
+    if ( sessionStorage.getItem( "stock-alert" ) != "DONE" )
+    {
+    var data_stock = {% if args["stock"] %}{{ args["stock"]|safe }}{% else %}[]{% endif %} ;
+
+    sessionStorage.setItem("stock-alert", "DONE") ;
+
+        for( i = 0; i < data_stock.length; i++ )
+        {
+            if ( (data_stock[i].nb_total > 0 && data_stock[i].day_to_expir <= {{ session['stock_expir_warning'] }}) ||
+                 (data_stock[i].nb_total <= data_stock[i].prd_safe_limit) )
+            {
+            alert("{{ _("Une alerte est présente dans la gestion de stock") }}") ;
+            return true ;
+            }
+        }
+    }
+    {% endif %}
+
+} ) ;
+</script>
+{% endblock %}
+{% else %}
+<script type="text/javascript" nonce="{{ session['nonce'] }}">
+window.location = "{{ session['server_ext'] }}/disconnect" ;
+</script>
+{% endif %}

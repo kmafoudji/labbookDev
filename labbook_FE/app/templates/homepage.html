@@ -3,182 +3,464 @@
 
 {% block head %}
 {{ super() }}
-    <title>{{ _("Accueil") }}</title>
+    <title>{{ _("Accueil") }} — LabBook</title>
     <script src="{{ url_for('static', filename='vendor/js/Chart.min.js') }}"></script>
 {% endblock %}
 
 {% block content %}
-<div id="content" class="text-center">
-    <div class="inner text-center">
-        <div id="main">
-            <h2 class="page-title page-title-color"><span>{{ _("Accueil") }}</span></h2>
+<div id="content" class="lbk-homepage">
 
-            {% if session['user_role'] == 'A' %}
-            <div class="module">
-                <div class="links">
-                    {% if has_permission("SETTING_38") %}
-                    <a href="{{ session['server_ext'] }}/setting-pref" class="list-group-item icon-module admin-preferences">{{ _("Préférences") }}</a>
-                    {% endif %}
-                    {% if has_permission("ADMIN_1") %}
-                    <a href="{{ session['server_ext'] }}/setting-roles-and-rights" class="list-group-item icon-module admin-gest-role">{{ _("Gestion des rôles") }}</a>
-                    {% endif %}
-                    {% if has_permission("SETTING_39") %}
-                    <a href="{{ session['server_ext'] }}/setting-users" class="list-group-item icon-module admin-crea-profil">{{ _("Gestion des utilisateurs") }}</a>
-                    {% endif %}
-                    {% if has_permission("SETTING_42") %}
-                    <a href="{{ session['server_ext'] }}/setting-analyzes" class="list-group-item icon-module admin-referentiel">{{ _("Référentiel des analyses") }}</a>
-                    {% endif %}
-                    {% if has_permission("SETTING_52") %}
-                    <a href="{{ session['server_ext'] }}/setting-dicts" class="list-group-item icon-module admin-conf-cr">{{ _("Dictionnaires") }}</a>
-                    {% endif %}
-                    {% if has_permission("SETTING_54") %}
-                    <a href="{{ session['server_ext'] }}/setting-backup" class="list-group-item icon-module admin-num-doss">{{ _("Gestion des sauvegardes") }}</a>
-                    {% endif %}
-                    {% if has_permission("SETTING_48") %}
-                    <a href="{{ session['server_ext'] }}/list-analyzers" class="list-group-item icon-module admin-connect">{{ _("Configuration des analyseurs") }}</a>
-                    {% endif %}
-                    {# Admin: configuration of document templates #}
-                    {% if has_permission("SETTING_38") %}
-                    <a href="{{ session['server_ext'] }}/list-template" class="list-group-item icon-module admin-conf-template">{{ _("Configuration des modèles de documents") }}</a>
-                    {% endif %}
-                    {# Admin: configuration of patient/other forms #}
-                    {% if has_permission("SETTING_38") %}
-                    <a href="{{ session['server_ext'] }}/setting-form" class="list-group-item icon-module admin-conf-form">{{ _("Configuration de formulaires") }}</a>
-                    {% endif %}
-                    {# Admin: configuration of sending methods #}
-                    {% if has_permission("SETTING_38") %}
-                    <a href="{{ session['server_ext'] }}/setting-sending-method" class="list-group-item icon-module admin-conf-sending-method">{{ _("Configuration des méthodes d'envoi") }}</a>
-                    {% endif %}
-                </div>
-                {% if args['stat_backup'] == 'OK' %}
-                <div class="text-end"><i class="fs-4 bi bi-database-check text-success me-1" title="{{ _("Dernière sauvegarde OK") }}"></i> <small>{{ args['date_backup'] }}</small></div>
-                {% else %}
-                <div class="text-end"><i class="fs-4 bi bi-database-x text-danger me-1" title="{{ _("Dernière sauvegarde") }}"></i> <small>{{ args['date_backup'] }}</small></div>
-                {% endif %}
-            </div>
-            {% else %}
-            <div class="module">
-                <div class="links {% if args['nb_emer'] > 0 %}mw-100 mx-5{% endif %}">
-                    {% if session['user_role'] in ('B','T','TA','TQ') and args['nb_emer'] > 0 %}
-                        {% if session['user_role'] == 'B' %}
-                    <a href="{{ session['server_ext'] }}/list-works/B/E" class="list-group-item icon-module emergency" title="{{ _("Analyses urgentes") }} : {{ args['nb_emer'] }}">{{ _("Urgences") }}</a>
-                        {% else %}
-                    <a href="{{ session['server_ext'] }}/list-works/T/E" class="list-group-item icon-module emergency" title="{{ _("Analyses urgentes") }} : {{ args['nb_emer'] }}">{{ _("Urgences") }}</a>
-                        {% endif %}
-                    {% endif %}
-                    {% if has_permission("RECORD_3") and session['user_role'] in ('B','T','TA','TQ','S','SA') %}
-                    <a href="{{ session['server_ext'] }}/list-records" class="list-group-item icon-module rec-list">{{ _("Liste des dossiers") }}</a>
-                    {% endif %}
-                    {% if has_permission("RECORD_5") and session['user_role'] == 'B' %}
-                    <a href="{{ session['server_ext'] }}/list-works/B" class="list-group-item icon-module work-list">{{ _("Liste de travail biologiste") }}</a>
-                    {% endif %}
-                    {% if has_permission("RECORD_8") and session['user_role'] in ('T','TA','TQ') %}
-                    <a href="{{ session['server_ext'] }}/list-works/T" class="list-group-item icon-module work-list">{{ _("Liste de travail technicien") }}</a>
-                    {% endif %}
-                    {% if has_permission("RECORD_13") and session['user_role'] in ('B','T','TA','TQ') %}
-                    <a href="{{ session['server_ext'] }}/list-samples" class="list-group-item icon-module samp-list">{{ _("Etat des prélèvements en cours") }}</a>
-                    {% endif %}
-                    {% if has_permission("RECORD_14") and session['user_role'] in ('B','T','TA','TQ') %}
-                    <a href="{{ session['server_ext'] }}/list-results" class="list-group-item icon-module res-list">{{ _("Saisie des résultats") }}</a>
-                    {% endif %}
-                    {% if has_permission("RECORD_11") and session['user_role'] in ('S','SA') %}
-                    <a href="{{ session['server_ext'] }}/new-req-ext" class="list-group-item icon-module new-rec-ext">{{ _("Nouvelle demande externe") }}</a>
-                    {% endif %}
-                    {% if has_permission("RECORD_12") and session['user_role'] in ('S','SA') %}
-                    <a href="{{ session['server_ext'] }}/new-req-int" class="list-group-item icon-module new-rec-int">{{ _("Nouvelle demande hospitalisé") }}</a>
-                    {% endif %}
-                </div>
-                {% if args['stat_backup'] == 'OK' %}
-                <div class="text-end"><i class="fs-4 bi bi-database-check text-success me-1" title="{{ _("Dernière sauvegarde OK") }}"></i> <small>{{ args['date_backup'] }}</small></div>
-                {% else %}
-                <div class="text-end"><i class="fs-4 bi bi-database-x text-danger me-1" title="{{ _("Dernière sauvegarde") }}"></i> <small>{{ args['date_backup'] }}</small></div>
-                {% endif %}
-            </div>
+    {# ══════════════════════════════════════════════════════
+       DASHBOARD ADMINISTRATEUR (rôle A)
+       ══════════════════════════════════════════════════════ #}
+    {% if session['user_role'] == 'A' %}
 
-            <div class="home-stat row">
-                <div class="home-graph col-lg-6 text-lg-end">
-                    <h5 id="label-chart">{{ _("Validations à effectuer") }}</h5>
-                    <canvas id="chart"></canvas>
-                </div>
-                <div class="home-activity col-lg-6 text-start">
-                    <h5 id="label-activity">{{ _("Activité du laboratoire") }}</h5>
-                    <ul>
-                        <li>{{ _("Dernier numéro utilisé") }} : <strong><span class="rec-num" id="num_rec"></span></strong></li>
-                        <li>{{ _("Nombre de dossiers validés aujourd'hui") }} : <strong>{{ args['nb_rec_today'] }}</strong></li>
-                        <li>{{ _("Nombre de dossiers enregistrés") }} : <strong>{{ args['nb_rec'] }}</strong></li>
-                    </ul>
+    <h2 class="lbk-dash-title">{{ _("Tableau de bord") }}</h2>
+
+    {# ── KPI Cards ── #}
+    <div class="lbk-kpi-row">
+
+        <div class="lbk-kpi lbk-kpi-mu">
+            <div class="lbk-kpi-accent"></div>
+            <i class="ti ti-folder lbk-kpi-ico"></i>
+            <div class="lbk-kpi-lbl">{{ _("Dossiers enregistrés") }}</div>
+            <div class="lbk-kpi-val" id="kpi-nb-rec">—</div>
+            <div class="lbk-kpi-sub">{{ _("Total cumulé") }}</div>
+        </div>
+
+        <div class="lbk-kpi lbk-kpi-gr">
+            <div class="lbk-kpi-accent"></div>
+            <i class="ti ti-calendar-check lbk-kpi-ico"></i>
+            <div class="lbk-kpi-lbl">{{ _("Validés aujourd'hui") }}</div>
+            <div class="lbk-kpi-val" id="kpi-nb-today">—</div>
+            <div class="lbk-kpi-sub lbk-ok" id="kpi-today-sub">{{ _("En cours") }}</div>
+        </div>
+
+        <div class="lbk-kpi lbk-kpi-bl">
+            <div class="lbk-kpi-accent"></div>
+            <i class="ti ti-microscope lbk-kpi-ico"></i>
+            <div class="lbk-kpi-lbl">{{ _("Attente biologiste") }}</div>
+            <div class="lbk-kpi-val" id="kpi-nb-bio">—</div>
+            <div class="lbk-kpi-sub lbk-warn" id="kpi-bio-sub">{{ _("À valider") }}</div>
+        </div>
+
+        <div class="lbk-kpi lbk-kpi-or">
+            <div class="lbk-kpi-accent"></div>
+            <i class="ti ti-tools lbk-kpi-ico"></i>
+            <div class="lbk-kpi-lbl">{{ _("Attente technicien") }}</div>
+            <div class="lbk-kpi-val" id="kpi-nb-tech">—</div>
+            <div class="lbk-kpi-sub lbk-warn" id="kpi-tech-sub">{{ _("À valider") }}</div>
+        </div>
+
+    </div>{# /kpi-row #}
+
+    {# ── Graphiques ── #}
+    <div class="lbk-charts-row">
+
+        {# Barres activité 7 jours — données simulées, à brancher sur une API BE #}
+        <div class="lbk-card">
+            <div class="lbk-card-title">{{ _("Activité — 7 derniers jours") }}</div>
+            <div class="lbk-bar-wrap" id="lbk-weekly-bars"></div>
+        </div>
+
+        {# Donut répartition bio/tech #}
+        <div class="lbk-card">
+            <div class="lbk-card-title">{{ _("Répartition des validations") }}</div>
+            <div class="lbk-donut-wrap">
+                <canvas id="lbk-chart-admin" width="120" height="120"></canvas>
+                <div class="lbk-donut-legend">
+                    <div class="lbk-dl">
+                        <span class="lbk-dl-dot" style="background:#D4A017"></span>
+                        <span class="lbk-dl-lbl">{{ _("Biologique") }}</span>
+                        <span class="lbk-dl-val" id="legend-bio">—</span>
+                    </div>
+                    <div class="lbk-dl">
+                        <span class="lbk-dl-dot" style="background:#2563eb"></span>
+                        <span class="lbk-dl-lbl">{{ _("Technique") }}</span>
+                        <span class="lbk-dl-val" id="legend-tech">—</span>
+                    </div>
+                    <div class="lbk-dl">
+                        <span class="lbk-dl-dot" style="background:#27ae60"></span>
+                        <span class="lbk-dl-lbl">{{ _("Validés aujourd'hui") }}</span>
+                        <span class="lbk-dl-val" id="legend-today">—</span>
+                    </div>
                 </div>
             </div>
-            {% endif %}
+        </div>
 
+    </div>{# /charts-row #}
+
+    {# ── Accès rapides Admin ── #}
+    <div class="lbk-section-title">{{ _("Accès rapides") }}</div>
+    <div class="lbk-qa-grid">
+        {% if has_permission("SETTING_38") %}
+        <a href="{{ session['server_ext'] }}/setting-pref" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-mu"><i class="ti ti-adjustments-horizontal"></i></div>
+            <div class="lbk-qlbl">{{ _("Préférences") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("ADMIN_1") %}
+        <a href="{{ session['server_ext'] }}/setting-roles-and-rights" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-mu"><i class="ti ti-shield-lock"></i></div>
+            <div class="lbk-qlbl">{{ _("Gestion des rôles") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("SETTING_39") %}
+        <a href="{{ session['server_ext'] }}/setting-users" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-mu"><i class="ti ti-users"></i></div>
+            <div class="lbk-qlbl">{{ _("Gestion des utilisateurs") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("SETTING_42") %}
+        <a href="{{ session['server_ext'] }}/setting-analyzes" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-gr"><i class="ti ti-test-pipe"></i></div>
+            <div class="lbk-qlbl">{{ _("Référentiel des analyses") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("SETTING_52") %}
+        <a href="{{ session['server_ext'] }}/setting-dicts" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-bl"><i class="ti ti-book-2"></i></div>
+            <div class="lbk-qlbl">{{ _("Dictionnaires") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("SETTING_54") %}
+        <a href="{{ session['server_ext'] }}/setting-backup" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-mu"><i class="ti ti-database"></i></div>
+            <div class="lbk-qlbl">{{ _("Gestion des sauvegardes") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("SETTING_48") %}
+        <a href="{{ session['server_ext'] }}/list-analyzers" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-or"><i class="ti ti-cpu"></i></div>
+            <div class="lbk-qlbl">{{ _("Configuration des analyseurs") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("SETTING_38") %}
+        <a href="{{ session['server_ext'] }}/list-template" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-bl"><i class="ti ti-file-description"></i></div>
+            <div class="lbk-qlbl">{{ _("Modèles de documents") }}</div>
+        </a>
+        <a href="{{ session['server_ext'] }}/setting-form" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-pu"><i class="ti ti-forms"></i></div>
+            <div class="lbk-qlbl">{{ _("Configuration de formulaires") }}</div>
+        </a>
+        <a href="{{ session['server_ext'] }}/setting-sending-method" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-or"><i class="ti ti-send"></i></div>
+            <div class="lbk-qlbl">{{ _("Méthodes d'envoi") }}</div>
+        </a>
+        {% endif %}
+    </div>
+
+    {# ── Statut sauvegarde ── #}
+    <div class="lbk-backup-bar">
+        {% if args.get('stat_backup') == 'OK' %}
+        <i class="ti ti-database-check lbk-bk-ico lbk-bk-ok"></i>
+        <span class="lbk-bk-lbl">{{ _("Dernière sauvegarde OK") }}</span>
+        {% else %}
+        <i class="ti ti-database-x lbk-bk-ico lbk-bk-warn"></i>
+        <span class="lbk-bk-lbl">{{ _("Dernière sauvegarde") }}</span>
+        {% endif %}
+        <span class="lbk-bk-date">{{ args.get('date_backup', '—') }}</span>
+    </div>
+
+    {# ══════════════════════════════════════════════════════
+       DASHBOARD AUTRES RÔLES (B, T, TA, TQ, S, SA…)
+       ══════════════════════════════════════════════════════ #}
+    {% else %}
+
+    <h2 class="lbk-dash-title">{{ _("Accueil") }}</h2>
+
+    {# Urgences #}
+    {% if session['user_role'] in ('B','T','TA','TQ') and args.get('nb_emer', 0) > 0 %}
+    <div class="lbk-alert-emer">
+        <i class="ti ti-alert-triangle"></i>
+        <strong>{{ args['nb_emer'] }} {{ _("analyse(s) urgente(s)") }}</strong>
+        {% if session['user_role'] == 'B' %}
+        <a href="{{ session['server_ext'] }}/list-works/B/E" class="lbk-btn-emer">{{ _("Voir les urgences") }}</a>
+        {% else %}
+        <a href="{{ session['server_ext'] }}/list-works/T/E" class="lbk-btn-emer">{{ _("Voir les urgences") }}</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {# ── Accès rapides selon rôle ── #}
+    <div class="lbk-section-title">{{ _("Accès rapides") }}</div>
+    <div class="lbk-qa-grid">
+        {% if has_permission("RECORD_3") and session['user_role'] in ('B','T','TA','TQ','S','SA') %}
+        <a href="{{ session['server_ext'] }}/list-records" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-bl"><i class="ti ti-folder"></i></div>
+            <div class="lbk-qlbl">{{ _("Liste des dossiers") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("RECORD_5") and session['user_role'] == 'B' %}
+        <a href="{{ session['server_ext'] }}/list-works/B" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-pu"><i class="ti ti-microscope"></i></div>
+            <div class="lbk-qlbl">{{ _("Liste de travail biologiste") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("RECORD_8") and session['user_role'] in ('T','TA','TQ') %}
+        <a href="{{ session['server_ext'] }}/list-works/T" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-bl"><i class="ti ti-tools"></i></div>
+            <div class="lbk-qlbl">{{ _("Liste de travail technicien") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("RECORD_13") and session['user_role'] in ('B','T','TA','TQ') %}
+        <a href="{{ session['server_ext'] }}/list-samples" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-gr"><i class="ti ti-test-pipe"></i></div>
+            <div class="lbk-qlbl">{{ _("Prélèvements en cours") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("RECORD_14") and session['user_role'] in ('B','T','TA','TQ') %}
+        <a href="{{ session['server_ext'] }}/list-results" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-or"><i class="ti ti-pencil"></i></div>
+            <div class="lbk-qlbl">{{ _("Saisie des résultats") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("RECORD_11") and session['user_role'] in ('S','SA') %}
+        <a href="{{ session['server_ext'] }}/new-req-ext" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-gr"><i class="ti ti-file-plus"></i></div>
+            <div class="lbk-qlbl">{{ _("Nouvelle demande externe") }}</div>
+        </a>
+        {% endif %}
+        {% if has_permission("RECORD_12") and session['user_role'] in ('S','SA') %}
+        <a href="{{ session['server_ext'] }}/new-req-int" class="lbk-qcard">
+            <div class="lbk-qico lbk-qico-bl"><i class="ti ti-building-hospital"></i></div>
+            <div class="lbk-qlbl">{{ _("Nouvelle demande hospitalisé") }}</div>
+        </a>
+        {% endif %}
+    </div>
+
+    {# ── Stats activité ── #}
+    <div class="lbk-charts-row" style="margin-top:20px">
+        <div class="lbk-card">
+            <div class="lbk-card-title">{{ _("Validations à effectuer") }}</div>
+            <canvas id="chart" width="300" height="200"></canvas>
+        </div>
+        <div class="lbk-card">
+            <div class="lbk-card-title">{{ _("Activité du laboratoire") }}</div>
+            <ul class="lbk-activity-list">
+                <li>
+                    <span class="lbk-act-lbl">{{ _("Dernier numéro utilisé") }}</span>
+                    <strong><span class="rec-num" id="num_rec"></span></strong>
+                </li>
+                <li>
+                    <span class="lbk-act-lbl">{{ _("Dossiers validés aujourd'hui") }}</span>
+                    <strong>{{ args.get('nb_rec_today', 0) }}</strong>
+                </li>
+                <li>
+                    <span class="lbk-act-lbl">{{ _("Dossiers enregistrés") }}</span>
+                    <strong>{{ args.get('nb_rec', 0) }}</strong>
+                </li>
+            </ul>
         </div>
     </div>
-</div>
+
+    {# Statut sauvegarde #}
+    <div class="lbk-backup-bar">
+        {% if args.get('stat_backup') == 'OK' %}
+        <i class="ti ti-database-check lbk-bk-ico lbk-bk-ok"></i>
+        <span class="lbk-bk-lbl">{{ _("Dernière sauvegarde OK") }}</span>
+        {% else %}
+        <i class="ti ti-database-x lbk-bk-ico lbk-bk-warn"></i>
+        <span class="lbk-bk-lbl">{{ _("Dernière sauvegarde") }}</span>
+        {% endif %}
+        <span class="lbk-bk-date">{{ args.get('date_backup', '—') }}</span>
+    </div>
+
+    {% endif %}{# /user_role A vs autres #}
+
+</div>{# /lbk-homepage #}
 {% endblock %}
 
 {% block add_script %}
 <script type="text/javascript" nonce="{{ session['nonce'] }}">
-{% if session['user_role'] not in ('A','P','K') %}
-var pieData = [{value: "{{ args['nb_rec_bio'] }}", label: "{{ _("Biologique") }}", color: "#8330E2"}, {value: "{{ args['nb_rec_tech'] }}", label: "{{ _("Technique") }}", color: "#00ADEE"}] ;
-{% endif %}
 
 $( document ).ready( function()
 {
-{% if session['user_role'] not in ('A','P','K') %}
-let rec_num = "" ;
 
-{% if args['record'] %}
-    {% if session['record_period'] == 1070 %} // Month period
-rec_num = {{ args['record']['num_dos_mois'] }} ;
-    {% else %} // Annual period
-rec_num = {{ args['record']['num_dos_an'] }} ;
-    {% endif %}
-rec_num = fmt_num_rec( rec_num, {{ session['record_format'] }}, {{ session['record_period'] }} ) ;
+{% if session['user_role'] == 'A' %}
+/* ════════════════════════════════════════════════
+   DASHBOARD ADMIN — chargement des données BE
+   ════════════════════════════════════════════════ */
 
-    $("#num_rec").html(rec_num) ;
-{% endif %}
+var nbBio   = 0 ;
+var nbTech  = 0 ;
+var nbToday = 0 ;
+var nbRec   = 0 ;
+var adminChart = null ;
 
-new Chart(document.getElementById("chart").getContext("2d")).Pie(pieData) ;
-{% endif %}
+function updateAdminChart()
+{
+    var ctx = document.getElementById('lbk-chart-admin') ;
+    if ( !ctx ) return ;
 
-    // Backup alert
-    {% if session['user_role'] in ('A','B') %}
-    if ( sessionStorage.getItem( "backup-alert" ) != "DONE" )
+    if ( adminChart ) adminChart.destroy() ;
+
+    adminChart = new Chart(ctx,
     {
+        type : 'doughnut',
+        data :
+        {
+            labels   : ["{{ _('Biologique') }}", "{{ _('Technique') }}", "{{ _('Validés aujourd\'hui') }}"],
+            datasets : [{ data: [nbBio, nbTech, nbToday], backgroundColor: ['#D4A017','#2563eb','#27ae60'], borderWidth: 2, borderColor: '#fff', hoverOffset: 4 }]
+        },
+        options :
+        {
+            cutout  : '68%',
+            plugins : { legend: { display: false }, tooltip: { enabled: true } },
+            animation: { duration: 600 }
+        }
+    }) ;
+
+    /* Update legend */
+    $('#legend-bio').text(nbBio) ;
+    $('#legend-tech').text(nbTech) ;
+    $('#legend-today').text(nbToday) ;
+}
+
+/* Load nb_rec */
+$.ajax(
+{
+    type    : "GET",
+    url     : "{{ session['server_ext'] }}/services/record/count",
+    headers : { 'Authorization': 'Bearer ' + BE_TOKEN },
+    success : function(ret) { nbRec = ret || 0 ; $('#kpi-nb-rec').text(nbRec.toLocaleString()) ; }
+}) ;
+
+/* Load nb_rec_today */
+$.ajax(
+{
+    type    : "GET",
+    url     : "{{ session['server_ext'] }}/services/record/count/today",
+    headers : { 'Authorization': 'Bearer ' + BE_TOKEN },
+    success : function(ret)
+    {
+        nbToday = ret || 0 ;
+        $('#kpi-nb-today').text(nbToday) ;
+        $('#legend-today').text(nbToday) ;
+        updateAdminChart() ;
+    }
+}) ;
+
+/* Load nb_rec_bio */
+$.ajax(
+{
+    type    : "GET",
+    url     : "{{ session['server_ext'] }}/services/record/count/biologist",
+    headers : { 'Authorization': 'Bearer ' + BE_TOKEN },
+    success : function(ret)
+    {
+        nbBio = ret || 0 ;
+        $('#kpi-nb-bio').text(nbBio) ;
+        if ( nbBio == 0 ) $('#kpi-bio-sub').removeClass('lbk-warn').addClass('lbk-ok').text("{{ _('Aucune en attente') }}") ;
+        updateAdminChart() ;
+    }
+}) ;
+
+/* Load nb_rec_tech */
+$.ajax(
+{
+    type    : "GET",
+    url     : "{{ session['server_ext'] }}/services/record/count/technician",
+    headers : { 'Authorization': 'Bearer ' + BE_TOKEN },
+    success : function(ret)
+    {
+        nbTech = ret || 0 ;
+        $('#kpi-nb-tech').text(nbTech) ;
+        if ( nbTech == 0 ) $('#kpi-tech-sub').removeClass('lbk-warn').addClass('lbk-ok').text("{{ _('Aucune en attente') }}") ;
+        updateAdminChart() ;
+    }
+}) ;
+
+/* Barres activité 7 jours — données simulées (brancher sur API BE à créer) */
+var days = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'] ;
+var vals = [38, 55, 49, 62, 71, 24, 9] ;
+var mx   = Math.max.apply(null, vals) ;
+var html = '' ;
+for (var i = 0; i < days.length; i++)
+{
+    var pct  = Math.round((vals[i] / mx) * 100) ;
+    var col  = (i < 5) ? '#D4A017' : '#ccc' ;
+    html += '<div class="lbk-brow">' +
+            '<span class="lbk-blbl">' + days[i] + '</span>' +
+            '<div class="lbk-btrack"><div class="lbk-bfill" style="width:' + pct + '%;background:' + col + '"></div></div>' +
+            '<span class="lbk-bnum">' + vals[i] + '</span>' +
+            '</div>' ;
+}
+$('#lbk-weekly-bars').html(html) ;
+
+/* Alertes backup */
+{% if session['user_role'] in ('A','B') %}
+if ( sessionStorage.getItem("backup-alert") != "DONE" )
+{
     sessionStorage.setItem("backup-alert", "DONE") ;
+    var date_backup_ok = {% if args.get("last_backup_ok") and args["last_backup_ok"]["is_older_than_24h"] %}"{{ args["last_backup_ok"]["date_backup_ok"] }}"{% else %}""{% endif %} ;
+    if ( date_backup_ok !== "" )
+        alert("{{ _('La dernière sauvegarde OK date de plus de 24 heures.') }} " + date_backup_ok) ;
+}
+{% endif %}
 
-    var date_backup_ok = {% if args["last_backup_ok"]["is_older_than_24h"] %}"{{ args["last_backup_ok"]["date_backup_ok"] }}"{% else %}""{% endif %} ;
+{% else %}
+/* ════════════════════════════════════════════════
+   AUTRES RÔLES — comportement original
+   ════════════════════════════════════════════════ */
 
-        if ( date_backup_ok !== "" )
-        {
-        alert("{{ _("La dernière sauvegarde OK date de plus de 24 heures.") }} " + date_backup_ok ) ;
-        }
-    }
+{% if session['user_role'] not in ('A','P','K') %}
+var pieData = [
+    {value: "{{ args.get('nb_rec_bio', 0) }}", label: "{{ _('Biologique') }}", color: "#8330E2"},
+    {value: "{{ args.get('nb_rec_tech', 0) }}", label: "{{ _('Technique') }}", color: "#00ADEE"}
+] ;
+
+var rec_num = "" ;
+{% if args.get('record') %}
+    {% if session['record_period'] == 1070 %}
+    rec_num = {{ args['record']['num_dos_mois'] }} ;
+    {% else %}
+    rec_num = {{ args['record']['num_dos_an'] }} ;
     {% endif %}
+rec_num = fmt_num_rec(rec_num, {{ session['record_format'] }}, {{ session['record_period'] }}) ;
+$("#num_rec").html(rec_num) ;
+{% endif %}
 
-    // Stock alert
-    {% if session['user_role'] not in ('P','Q') %}
-    if ( sessionStorage.getItem( "stock-alert" ) != "DONE" )
-    {
-    var data_stock = {% if args["stock"] %}{{ args["stock"]|safe }}{% else %}[]{% endif %} ;
+if ( document.getElementById('chart') )
+    new Chart(document.getElementById("chart").getContext("2d")).Pie(pieData) ;
+{% endif %}
 
+/* Alertes backup */
+{% if session['user_role'] in ('A','B') %}
+if ( sessionStorage.getItem("backup-alert") != "DONE" )
+{
+    sessionStorage.setItem("backup-alert", "DONE") ;
+    var date_backup_ok = {% if args.get("last_backup_ok") and args["last_backup_ok"]["is_older_than_24h"] %}"{{ args["last_backup_ok"]["date_backup_ok"] }}"{% else %}""{% endif %} ;
+    if ( date_backup_ok !== "" )
+        alert("{{ _('La dernière sauvegarde OK date de plus de 24 heures.') }} " + date_backup_ok) ;
+}
+{% endif %}
+
+/* Alertes stock */
+{% if session['user_role'] not in ('P','Q') %}
+if ( sessionStorage.getItem("stock-alert") != "DONE" )
+{
+    var data_stock = {% if args.get("stock") %}{{ args["stock"]|safe }}{% else %}[]{% endif %} ;
     sessionStorage.setItem("stock-alert", "DONE") ;
-
-        for( i = 0; i < data_stock.length; i++ )
+    for (var i = 0; i < data_stock.length; i++)
+    {
+        if ( (data_stock[i].nb_total > 0 && data_stock[i].day_to_expir <= {{ session['stock_expir_warning'] }}) ||
+             (data_stock[i].nb_total <= data_stock[i].prd_safe_limit) )
         {
-            if ( (data_stock[i].nb_total > 0 && data_stock[i].day_to_expir <= {{ session['stock_expir_warning'] }}) ||
-                 (data_stock[i].nb_total <= data_stock[i].prd_safe_limit) )
-            {
-            alert("{{ _("Une alerte est présente dans la gestion de stock") }}") ;
+            alert("{{ _('Une alerte est présente dans la gestion de stock') }}") ;
             return true ;
-            }
         }
     }
-    {% endif %}
+}
+{% endif %}
 
-} ) ;
+{% endif %}{# /user_role A #}
+
+}) ; /* end document.ready */
 </script>
 {% endblock %}
+
 {% else %}
 <script type="text/javascript" nonce="{{ session['nonce'] }}">
 window.location = "{{ session['server_ext'] }}/disconnect" ;
