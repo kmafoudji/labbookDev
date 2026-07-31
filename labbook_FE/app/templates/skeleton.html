@@ -9,7 +9,6 @@
     <link href="{{ url_for('static', filename='vendor/css/datatables.min.css') }}" media="screen, print" rel="stylesheet" type="text/css">
     <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" media="screen, print" rel="stylesheet" type="text/css">
     <link href="{{ url_for('labbook_css') }}?{{ rand }}" media="screen" rel="stylesheet" type="text/css">
-    {# Tabler Icons for sidebar #}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 
     <script src="{{ url_for('static', filename='vendor/moment/moment.js') }}"></script>
@@ -19,8 +18,6 @@
     <script src="{{ url_for('static', filename='vendor/js/datatables.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app-labbook.js') }}?1" nonce="{{ session['nonce'] }}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    {# bring custom style build with some data from DB #}
     {{ custom_style()|safe }}
     {% endblock %}
 </head>
@@ -28,117 +25,131 @@
 {% block body %}
 {% block tag_body %}<body onLoad="init_timeOut('{{ session['server_ext'] }}', {{ session['auto_logout'] }});" onmousemove="reboot_timeOut({{ session['auto_logout'] }});">{% endblock %}
 
-<div id="lbk-app">
+<div class="d-flex" id="lbk-wrapper">
 
-    {# ═══════════════════════════════════════════════════════════
-       SIDEBAR — visible uniquement si connecté
-       ═══════════════════════════════════════════════════════════ #}
+    {# ═══ SIDEBAR Bootstrap offcanvas-like ═══ #}
     {% block sidebar %}
-    <aside id="lbk-sidebar" class="lbk-sidebar">
+    <aside id="lbk-sidebar" class="lbk-sidebar d-flex flex-column">
 
-        {# ── Logo ── #}
-        <div class="lbk-sb-top">
-            <a href="{{ session['server_ext'] }}/homepage" class="lbk-logo-img">
-                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="LabBook" class="lbk-logo-img-full">
-                <img src="{{ url_for('static', filename='img/logo_small.png') }}" alt="LabBook" class="lbk-logo-img-mini">
+        {# Logo #}
+        <div class="lbk-sb-header d-flex align-items-center px-3">
+            <a href="{{ session['server_ext'] }}/homepage" class="lbk-sb-logo-link">
+                <img src="{{ url_for('static', filename='img/logo.png') }}"
+                     alt="LabBook" class="lbk-logo-full">
+                <img src="{{ url_for('static', filename='img/logo_small.png') }}"
+                     alt="LabBook" class="lbk-logo-mini d-none">
             </a>
-            <button class="lbk-sb-tog" id="lbk-sb-tog" title="{{ _('Réduire/Agrandir') }}" aria-label="{{ _('Toggle sidebar') }}">
-                <i class="ti ti-layout-sidebar-left-collapse"></i>
+            <button class="btn lbk-toggle-btn ms-auto" id="lbk-sb-tog"
+                    title="{{ _('Réduire') }}" type="button">
+                <i class="ti ti-chevrons-left fs-5"></i>
             </button>
         </div>
 
-        {# ── Utilisateur ── #}
-        <div class="lbk-sb-user">
-            <div class="lbk-sb-avatar" id="lbk-avatar">
-                {{ session.get('user_firstname', '')[:1] | upper }}{{ session.get('user_lastname', '')[:1] | upper }}
+        {# Utilisateur #}
+        <div class="lbk-sb-user d-flex align-items-center gap-2 px-3 py-2">
+            <div class="lbk-sb-av flex-shrink-0">
+                {{ session.get('user_firstname','')[:1]|upper }}{{ session.get('user_lastname','')[:1]|upper }}
             </div>
-            <div class="lbk-sb-userinfo">
-                <div class="lbk-sb-username" id="lbk-username">
-                    {{ session.get('user_firstname', '') }} {{ session.get('user_lastname', '') }}
+            <div class="lbk-sb-uinfo overflow-hidden">
+                <div class="lbk-sb-uname text-truncate fw-bold">
+                    {{ session.get('user_firstname','') }} {{ session.get('user_lastname','') }}
                 </div>
-                <div class="lbk-sb-userrole">{{ session.get('user_role', '') }}</div>
+                <div class="lbk-sb-urole small">{{ session.get('user_role','') }}</div>
             </div>
         </div>
 
-        {# ── Navigation ── #}
-        <nav class="lbk-sb-nav">
+        {# Navigation #}
+        <nav class="lbk-sb-nav flex-grow-1 overflow-y-auto">
             {% include 'menu.html' %}
         </nav>
 
-        {# ── Footer sidebar ── #}
+        {# Déconnexion #}
         <div class="lbk-sb-foot">
-            <a href="{{ session['server_ext'] }}/disconnect" class="lbk-sb-disconnect">
-                <i class="ti ti-logout"></i>
-                <span class="lbk-sb-foot-txt">{{ _("Déconnexion") }}</span>
+            <a href="{{ session['server_ext'] }}/disconnect"
+               class="lbk-sb-disconnect d-flex align-items-center gap-2 px-3 py-2 fw-semibold">
+                <i class="ti ti-logout fs-5 flex-shrink-0"></i>
+                <span class="lbk-sb-txt">{{ _("Déconnexion") }}</span>
             </a>
-            <span class="lbk-sb-version lbk-sb-foot-txt">v{{ session.get('version', '') }}</span>
+            <div class="lbk-sb-version px-3 lbk-sb-txt">v{{ session.get('version','') }}</div>
         </div>
 
     </aside>
     {% endblock %}
 
-    {# ═══════════════════════════════════════════════════════════
-       MAIN — topbar + contenu
-       ═══════════════════════════════════════════════════════════ #}
-    <div id="lbk-main">
+    {# ═══ MAIN ═══ #}
+    <div id="lbk-main" class="d-flex flex-column flex-grow-1 overflow-hidden">
 
-        {# ── Topbar ── #}
+        {# Topbar #}
         {% block header %}
-        <header id="lbk-topbar">
-            <div class="lbk-topbar-left">
-                {# Burger mobile #}
-                <button class="lbk-burger d-md-none" id="lbk-burger" aria-label="{{ _('Menu') }}">
-                    <i class="ti ti-menu-2"></i>
-                </button>
-                <span class="lbk-page-title" id="lbk-page-title">{{ _("Accueil") }}</span>
-            </div>
+        <header id="lbk-topbar" class="d-flex align-items-center px-3 gap-2 flex-shrink-0">
 
-            <div class="lbk-topbar-right">
+            {# Burger — toujours visible pour rouvrir la sidebar #}
+            <button class="btn lbk-burger-btn" id="lbk-burger" type="button"
+                    title="{{ _('Menu') }}" aria-label="{{ _('Menu') }}">
+                <i class="ti ti-menu-2 fs-5"></i>
+            </button>
+
+            <span class="lbk-topbar-title fw-bold ms-1">{{ _("Accueil") }}</span>
+
+            <div class="d-flex align-items-center gap-2 ms-auto">
+
                 {# Messagerie #}
-                <a href="{{ session['server_ext'] }}/list-messages" class="lbk-tb-btn" title="{{ _('Messages') }}">
-                    <i class="ti ti-message-circle"></i>
-                    <span id="nb_msg_unread" class="lbk-badge-msg"></span>
+                <a href="{{ session['server_ext'] }}/list-messages"
+                   class="lbk-tb-icon-btn position-relative" title="{{ _('Messages') }}">
+                    <i class="ti ti-message-circle fs-4"></i>
+                    <span id="nb_msg_unread" class="lbk-msg-badge d-none"></span>
                 </a>
 
-                {# Profil utilisateur #}
+                {# Profil dropdown Bootstrap 5 #}
                 <div class="dropdown">
-                    <button class="lbk-tb-btn lbk-tb-user" type="button" id="lbk-user-dd" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="ti ti-user-circle"></i>
+                    <button class="lbk-tb-icon-btn" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="ti ti-user-circle fs-4"></i>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="lbk-user-dd">
-                        <li><a class="dropdown-item" href="{{ session['server_ext'] }}/det-staff/homepage/{{ session['user_id'] }}">
-                            <i class="ti ti-edit me-2"></i>{{ _('Editer utilisateur') }}</a></li>
-                        <li><a class="dropdown-item" href="{{ session['server_ext'] }}/setting-pwd-user/homepage/{{ session['user_id'] }}">
-                            <i class="ti ti-key me-2"></i>{{ _('Editer mot de passe') }}</a></li>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li>
+                            <a class="dropdown-item" href="{{ session['server_ext'] }}/det-staff/homepage/{{ session['user_id'] }}">
+                                <i class="bi bi-pencil me-2"></i>{{ _('Editer utilisateur') }}
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ session['server_ext'] }}/setting-pwd-user/homepage/{{ session['user_id'] }}">
+                                <i class="bi bi-key me-2"></i>{{ _('Editer mot de passe') }}
+                            </a>
+                        </li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="{{ session['server_ext'] }}/disconnect">
-                            <i class="ti ti-logout me-2"></i>{{ _('Déconnexion') }}</a></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{{ session['server_ext'] }}/disconnect">
+                                <i class="bi bi-box-arrow-right me-2"></i>{{ _('Déconnexion') }}
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
                 {# Langue #}
                 {% include 'menu-country.html' %}
+
             </div>
         </header>
         {% endblock %}
 
-        {# ── Contenu de la page ── #}
+        {# Contenu #}
         {% block content %}
         <div id="content"></div>
         {% endblock %}
 
         {% include 'popup/popup_history.html' %}
 
-        {# ── Footer ── #}
         {% block footer %}
-        <footer id="lbk-footer">
-            <span>{{ _("Version") }} : {{ session['version'] }} | <a href="{{ session['server_ext'] }}/contributors">{{ _("Contributeurs") }}</a></span>
+        <footer id="lbk-footer" class="text-center">
+            {{ _("Version") }} : {{ session['version'] }} |
+            <a href="{{ session['server_ext'] }}/contributors">{{ _("Contributeurs") }}</a>
         </footer>
         {% endblock %}
 
     </div>{# /lbk-main #}
 
-</div>{# /lbk-app #}
+</div>{# /lbk-wrapper #}
 
 {% include 'popup/popup_wait.html' %}
 {% include 'popup/popup_toast.html' %}
@@ -148,158 +159,120 @@
 
 <script type="text/javascript" nonce="{{ session['nonce'] }}">
 window.BE_TOKEN = {{ session.get('be_access_token','')|tojson }};
-var username = "{{ session['user_name']|safe }}" ;
+var username = "{{ session['user_name']|safe }}";
 
-function load_username()
-{
-var name      = '' ;
-var firstname = "{{ session['user_firstname']|safe }}" ;
-var lastname  = "{{ session['user_lastname']|safe }}" ;
-
-    if ( firstname )
-    name = firstname + ' ' + lastname ;
-
-    if ( !name )
-    name = username ;
-
-$("#header_name").text( name ) ;
+function load_username() {
+    var name      = '';
+    var firstname = "{{ session['user_firstname']|safe }}";
+    var lastname  = "{{ session['user_lastname']|safe }}";
+    if (firstname) name = firstname + ' ' + lastname;
+    if (!name)     name = username;
+    $("#header_name").text(name);
 }
 
-function download_file( type, filename, type_ref, ref)
-{
-    try
-    {
-        if ( type_ref == "PROC" )
-        {
-        var id_user = {{ session['user_id']|safe }} ;
-
-        var param = '{ "id_user":' + id_user + ', "type":"' + type_ref + '", "ref":' + ref + '}' ;
-
-            $.ajax(
-            {
+function download_file(type, filename, type_ref, ref) {
+    try {
+        if (type_ref === "PROC") {
+            var id_user = {{ session['user_id']|safe }};
+            var param = '{"id_user":' + id_user + ',"type":"' + type_ref + '","ref":' + ref + '}';
+            $.ajax({
                 type: "POST",
                 url: "{{ session['server_ext'] }}/services/quality/trace/download",
-                dataType: 'json',
-                contentType: "application/json; charset=utf-8",
-                data: param,
-                headers: { 'Authorization': 'Bearer ' + BE_TOKEN },
-                error: function(ret)
-                {
-                console.log("ERROR POST trace download") ;
-                }
-            } ) ;
+                dataType: 'json', contentType: "application/json; charset=utf-8",
+                data: param, headers: {'Authorization': 'Bearer ' + BE_TOKEN},
+                error: function() { console.log("ERROR POST trace download"); }
+            });
         }
-
-    window.open("{{ session['server_ext'] }}/download-file/type/" + type + "/name/" + filename + "/ref/" + type_ref + "/" + ref, "_blank") ;
-    }
-    catch(err)
-    {
-    alert("{{ _("Une erreur est survenue") }}") ;
-    }
+        window.open("{{ session['server_ext'] }}/download-file/type/" + type + "/name/" + filename + "/ref/" + type_ref + "/" + ref, "_blank");
+    } catch(err) { alert("{{ _('Une erreur est survenue') }}"); }
 }
 
-function nb_msg_unread()
-{
-    $.ajax(
-    {
+function nb_msg_unread() {
+    $.ajax({
         type: "GET",
-        url: "{{ session['server_ext'] }}/services/quality/message/unread/{{ session['user_id']|safe}}",
-        headers: { 'Authorization': 'Bearer ' + BE_TOKEN },
-        success: function(ret)
-        {
-            if (ret == 0) $("#nb_msg_unread").text("").removeClass("has-msg");
-            else          $("#nb_msg_unread").text(ret).addClass("has-msg");
+        url: "{{ session['server_ext'] }}/services/quality/message/unread/{{ session['user_id']|safe }}",
+        headers: {'Authorization': 'Bearer ' + BE_TOKEN},
+        success: function(ret) {
+            if (ret == 0) { $("#nb_msg_unread").text("").addClass("d-none"); }
+            else          { $("#nb_msg_unread").text(ret).removeClass("d-none"); }
         },
-        error: function(ret)
-        {
-        console.log("ERROR GET nb msg unread") ;
-        }
-    } ) ;
+        error: function() { console.log("ERROR GET nb msg unread"); }
+    });
 }
 
-function set_audit_context(ctx_label)
-{
-    window.LBK_AUDIT_CONTEXT = ctx_label || "";
-}
-
-function with_audit_headers(headers)
-{
+function set_audit_context(ctx_label)  { window.LBK_AUDIT_CONTEXT = ctx_label || ""; }
+function with_audit_headers(headers) {
     headers = headers || {};
-
-    if (window.LBK_AUDIT_CONTEXT)
-    {
+    if (window.LBK_AUDIT_CONTEXT) {
         headers["X-LabBook-Audit-Context"] = window.LBK_AUDIT_CONTEXT;
         window.LBK_AUDIT_CONTEXT = "";
     }
-
     return headers;
 }
 
-$( document ).ready( function()
-{
-load_username() ;
-nb_msg_unread() ;
-setInterval(nb_msg_unread, 30000);
+$(document).ready(function() {
+    load_username();
+    nb_msg_unread();
+    setInterval(nb_msg_unread, 30000);
 
-/* ── Sidebar toggle ── */
-var SB_KEY = 'lbk_sb_collapsed';
-var $sb    = $('#lbk-sidebar');
-var $main  = $('#lbk-main');
+    /* ── Sidebar : état persisté dans localStorage ── */
+    var SB_KEY     = 'lbk_sb_collapsed';
+    var $sb        = $('#lbk-sidebar');
+    var $main      = $('#lbk-main');
+    var $togBtn    = $('#lbk-sb-tog');
+    var $burgerBtn = $('#lbk-burger');
 
-function applySB(collapsed)
-{
-    if (collapsed) { $sb.addClass('collapsed');  $main.addClass('sb-collapsed'); }
-    else           { $sb.removeClass('collapsed'); $main.removeClass('sb-collapsed'); }
-}
-
-/* Restore saved state */
-applySB(localStorage.getItem(SB_KEY) === '1');
-
-$('#lbk-sb-tog').on('click', function()
-{
-    var now = $sb.hasClass('collapsed');
-    applySB(!now);
-    localStorage.setItem(SB_KEY, now ? '0' : '1');
-});
-
-/* Burger mobile */
-$('#lbk-burger').on('click', function()
-{
-    $sb.toggleClass('mobile-open');
-});
-
-/* ── Accordion sidebar ── */
-$(document).on('click', '.lbk-nav-toggle', function()
-{
-    var $this = $(this);
-    var $sub  = $this.next('.lbk-sub');
-    var isOpen = $sub.hasClass('open');
-
-    /* Fermer tous */
-    $('.lbk-sub').removeClass('open');
-    $('.lbk-nav-toggle').removeClass('expanded');
-
-    if (!isOpen)
-    {
-        $sub.addClass('open');
-        $this.addClass('expanded');
+    function setSB(collapsed) {
+        if (collapsed) {
+            $sb.addClass('lbk-sb-collapsed');
+            $main.addClass('lbk-main-expanded');
+            $togBtn.find('i').removeClass('ti-chevrons-left').addClass('ti-chevrons-right');
+        } else {
+            $sb.removeClass('lbk-sb-collapsed');
+            $main.removeClass('lbk-main-expanded');
+            $togBtn.find('i').removeClass('ti-chevrons-right').addClass('ti-chevrons-left');
+        }
+        /* Le burger dans la topbar : toujours visible, icône change */
+        $burgerBtn.find('i').toggleClass('ti-menu-2', !collapsed).toggleClass('ti-layout-sidebar', collapsed);
     }
-});
 
-/* Highlight item actif selon l'URL */
-var path = window.location.pathname;
-$('.lbk-sub-item').each(function()
-{
-    if ($(this).attr('href') && path.indexOf($(this).attr('href').split('/').pop()) > -1)
-    {
-        $(this).addClass('active');
-        $(this).closest('.lbk-sub').addClass('open');
-        $(this).closest('.lbk-sub').prev('.lbk-nav-toggle').addClass('expanded');
-    }
-});
+    /* Restaurer l'état sauvegardé */
+    setSB(localStorage.getItem(SB_KEY) === '1');
 
-} ) ;
+    /* Bouton collapse dans la sidebar */
+    $togBtn.on('click', function() {
+        var collapsed = !$sb.hasClass('lbk-sb-collapsed');
+        setSB(collapsed);
+        localStorage.setItem(SB_KEY, collapsed ? '1' : '0');
+    });
+
+    /* Burger dans la topbar — ouvre/ferme aussi */
+    $burgerBtn.on('click', function() {
+        var collapsed = !$sb.hasClass('lbk-sb-collapsed');
+        setSB(collapsed);
+        localStorage.setItem(SB_KEY, collapsed ? '1' : '0');
+    });
+
+    /* ── Accordion menu ── */
+    $(document).on('click', '.lbk-nav-toggle', function() {
+        var $sub   = $(this).next('.lbk-sub');
+        var isOpen = $sub.hasClass('open');
+        $('.lbk-sub').removeClass('open');
+        $('.lbk-nav-toggle').removeClass('expanded');
+        if (!isOpen) { $sub.addClass('open'); $(this).addClass('expanded'); }
+    });
+
+    /* ── Item actif selon URL ── */
+    var path = window.location.pathname;
+    $('.lbk-sub-item').each(function() {
+        var href = $(this).attr('href');
+        if (href && path.indexOf(href.split('/').pop()) > -1) {
+            $(this).addClass('active');
+            $(this).closest('.lbk-sub').addClass('open')
+                   .prev('.lbk-nav-toggle').addClass('expanded');
+        }
+    });
+});
 </script>
-{% block add_script %}
-{% endblock %}
+{% block add_script %}{% endblock %}
 </html>
