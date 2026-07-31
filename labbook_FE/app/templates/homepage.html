@@ -17,6 +17,18 @@
 
     <h2 class="lbk-dash-title">{{ _("Tableau de bord") }}</h2>
 
+    {# ── Statut sauvegarde — visible en haut ── #}
+    <div class="lbk-backup-bar lbk-backup-top">
+        {% if args.get('stat_backup') == 'OK' %}
+        <i class="ti ti-database-check lbk-bk-ico lbk-bk-ok"></i>
+        <span class="lbk-bk-lbl">{{ _("Dernière sauvegarde OK") }}</span>
+        {% else %}
+        <i class="ti ti-database-x lbk-bk-ico lbk-bk-warn"></i>
+        <span class="lbk-bk-lbl">{{ _("Dernière sauvegarde") }}</span>
+        {% endif %}
+        <span class="lbk-bk-date">{{ args.get('date_backup', '—') }}</span>
+    </div>
+
     {# ── KPI Cards ── #}
     <div class="lbk-kpi-row">
 
@@ -70,7 +82,7 @@
                 <canvas id="lbk-chart-admin" width="120" height="120"></canvas>
                 <div class="lbk-donut-legend">
                     <div class="lbk-dl">
-                        <span class="lbk-dl-dot" style="background:#D4A017"></span>
+                        <span class="lbk-dl-dot" style="background:#FFCC00"></span>
                         <span class="lbk-dl-lbl">{{ _("Biologique") }}</span>
                         <span class="lbk-dl-val" id="legend-bio">—</span>
                     </div>
@@ -302,7 +314,7 @@ function updateAdminChart()
         data :
         {
             labels   : ["{{ _('Biologique') }}", "{{ _('Technique') }}", "{{ _('Validés aujourd\'hui') }}"],
-            datasets : [{ data: [nbBio, nbTech, nbToday], backgroundColor: ['#D4A017','#2563eb','#27ae60'], borderWidth: 2, borderColor: '#fff', hoverOffset: 4 }]
+            datasets : [{ data: [nbBio, nbTech, nbToday], backgroundColor: ['#FFCC00','#2563eb','#27ae60'], borderWidth: 2, borderColor: '#fff', hoverOffset: 4 }]
         },
         options :
         {
@@ -380,7 +392,7 @@ var html = '' ;
 for (var i = 0; i < days.length; i++)
 {
     var pct  = Math.round((vals[i] / mx) * 100) ;
-    var col  = (i < 5) ? '#D4A017' : '#ccc' ;
+    var col  = (i < 5) ? '#FFCC00' : '#ccc' ;
     html += '<div class="lbk-brow">' +
             '<span class="lbk-blbl">' + days[i] + '</span>' +
             '<div class="lbk-btrack"><div class="lbk-bfill" style="width:' + pct + '%;background:' + col + '"></div></div>' +

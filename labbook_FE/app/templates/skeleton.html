@@ -38,8 +38,9 @@
 
         {# ── Logo ── #}
         <div class="lbk-sb-top">
-            <a href="{{ session['server_ext'] }}/homepage" class="lbk-logo">
-                <span class="lbk-logo-lab">Lab</span><span class="lbk-logo-book">Book</span>
+            <a href="{{ session['server_ext'] }}/homepage" class="lbk-logo-img">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="LabBook" class="lbk-logo-img-full">
+                <img src="{{ url_for('static', filename='img/logo_small.png') }}" alt="LabBook" class="lbk-logo-img-mini">
             </a>
             <button class="lbk-sb-tog" id="lbk-sb-tog" title="{{ _('Réduire/Agrandir') }}" aria-label="{{ _('Toggle sidebar') }}">
                 <i class="ti ti-layout-sidebar-left-collapse"></i>
@@ -66,7 +67,11 @@
 
         {# ── Footer sidebar ── #}
         <div class="lbk-sb-foot">
-            <span class="lbk-sb-foot-txt">{{ _("Version") }} : {{ session.get('version', '') }}</span>
+            <a href="{{ session['server_ext'] }}/disconnect" class="lbk-sb-disconnect">
+                <i class="ti ti-logout"></i>
+                <span class="lbk-sb-foot-txt">{{ _("Déconnexion") }}</span>
+            </a>
+            <span class="lbk-sb-version lbk-sb-foot-txt">v{{ session.get('version', '') }}</span>
         </div>
 
     </aside>
