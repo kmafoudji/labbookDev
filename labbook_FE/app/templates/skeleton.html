@@ -25,7 +25,7 @@
 {% block body %}
 {% block tag_body %}<body onLoad="init_timeOut('{{ session['server_ext'] }}', {{ session['auto_logout'] }});" onmousemove="reboot_timeOut({{ session['auto_logout'] }});">{% endblock %}
 
-<div class="d-flex" id="lbk-wrapper">
+<div id="lbk-wrapper">
 
     {# ═══ SIDEBAR Bootstrap offcanvas-like ═══ #}
     {% block sidebar %}

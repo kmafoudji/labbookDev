@@ -108,12 +108,12 @@ height              : 100vh;
 
 #content
 {
-/* padding-top    : 7rem; */
-padding-top: calc(75px + 34px + 16px);
-padding-bottom : 32px;
-background     : #FFF;
-min-height     : auto;
-height         : auto;
+padding-top    : calc(56px + 18px);
+padding-bottom : 40px;
+padding-left   : 20px;
+padding-right  : 20px;
+background     : #f8f9fa;
+min-height     : calc(100vh - 56px);
 flex-grow      : 1;
 }
 
@@ -2000,6 +2000,39 @@ font-size: 15px;
    SIDEBAR & DASHBOARD — LabBook Bootstrap 5
    ═══════════════════════════════════════════════════════ #}
 
+/* ── OVERRIDES CRITIQUES — annuler les styles globaux conflictuels ── */
+
+/* body était display:block — il faut qu'il soit flex pour le layout sidebar */
+body {
+    display     : flex !important;
+    flex-direction: column;
+    min-height  : 100vh;
+}
+
+/* #page n'est plus utilisé dans le nouveau layout */
+#page { display: none !important; }
+
+/* #page-header non plus */
+#page-header { display: none !important; }
+
+/* Les liens dans la sidebar doivent garder leur couleur, pas le vert global */
+.lbk-sidebar a,
+.lbk-sidebar a:visited,
+.lbk-sidebar a:active,
+.lbk-sidebar a:focus,
+.lbk-sidebar a:hover {
+    color           : inherit !important;
+    text-decoration : none !important;
+    outline         : none;
+}
+
+/* Le wrapper principal doit être flex row */
+#lbk-wrapper {
+    display     : flex !important;
+    flex        : 1;
+    width       : 100%;
+}
+
 /* ── Couleurs rôle Admin (jaune LabBook #FFCC00) ── */
 {% if session.get('user_role') == 'A' %}
 :root {
@@ -2351,15 +2384,7 @@ font-size: 15px;
     padding      : 0 3px;
 }
 
-/* Content */
-#content {
-    padding-top    : calc(56px + 18px);
-    padding-bottom : 40px;
-    padding-left   : 20px;
-    padding-right  : 20px;
-    background     : #f8f9fa;
-    min-height     : calc(100vh - 56px);
-}
+/* Content — défini plus haut dans le CSS */
 
 /* Footer */
 #lbk-footer {
